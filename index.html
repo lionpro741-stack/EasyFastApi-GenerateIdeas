@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>💡 Генератор идей</title>
+
+<style>
+
+body{
+    margin:0;
+    font-family:Segoe UI,Arial;
+    background: linear-gradient(135deg,#1e3c72,#2a5298);
+    color:white;
+}
+
+.container{
+    width:900px;
+    max-width:95%;
+    margin:auto;
+    padding:30px;
+}
+
+h1{
+    text-align:center;
+    margin-bottom:30px;
+}
+
+.card{
+    background: rgba(255,255,255,0.1);
+    backdrop-filter: blur(10px);
+    border-radius:15px;
+    padding:20px;
+    margin-bottom:20px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.3);
+}
+
+button{
+    padding:10px 18px;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+    font-weight:bold;
+    transition:0.2s;
+}
+
+button:hover{
+    transform:scale(1.05);
+}
+
+.btn-main{
+    background:#00c6ff;
+    color:white;
+}
+
+.btn-danger{
+    background:#ff4d4d;
+    color:white;
+}
+
+.btn-green{
+    background:#00d26a;
+    color:white;
+}
+
+input{
+    padding:10px;
+    border:none;
+    border-radius:8px;
+    width:70%;
+}
+
+.idea{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:10px;
+    background:rgba(255,255,255,0.08);
+    border-radius:8px;
+    margin-top:8px;
+}
+
+.randomIdea{
+    font-size:20px;
+    font-weight:bold;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>💡 Генератор идей проектов</h1>
+
+<div class="card">
+
+<h2>🎲 Случайная идея</h2>
+
+<div class="randomIdea" id="randomIdea">
+Нажми кнопку
+</div>
+
+<br>
+
+<button class="btn-main" onclick="getRandomIdea()">
+Получить идею
+</button>
+
+</div>
+
+<div class="card">
+
+<h2>➕ Добавить идею</h2>
+
+<input id="ideaInput" placeholder="Введите идею...">
+
+<button class="btn-green" onclick="addIdea()">
+Добавить
+</button>
+
+</div>
+
+<div class="card">
+
+<h2>📋 Все идеи</h2>
+
+<button class="btn-main" onclick="loadIdeas()">
+Обновить список
+</button>
+
+<button class="btn-danger" onclick="deleteAllIdeas()">
+Удалить все
+</button>
+
+<div id="ideasList"></div>
+
+</div>
+
+</div>
+
+
+<script>
+
+const API = "http://127.0.0.1:8000"
+
+
+async function getRandomIdea(){
+
+    const res = await fetch(API + "/")
+    const data = await res.json()
+
+    document.getElementById("randomIdea").innerText = data["Идея"]
+}
+
+
+async function loadIdeas(){
+
+    const res = await fetch(API + "/all_ideas")
+    const data = await res.json()
+
+    const ideas = data["Все идеи"]
+
+    const list = document.getElementById("ideasList")
+    list.innerHTML=""
+
+    ideas.forEach(idea => {
+
+        const div = document.createElement("div")
+        div.className="idea"
+
+        const text = document.createElement("span")
+        text.innerText = idea
+
+        const btn = document.createElement("button")
+        btn.innerText = "Удалить"
+        btn.className = "btn-danger"
+        btn.onclick = () => deleteIdea(idea)
+
+        div.appendChild(text)
+        div.appendChild(btn)
+
+        list.appendChild(div)
+    })
+}
+
+
+async function addIdea(){
+
+    const input = document.getElementById("ideaInput")
+    const idea = input.value
+
+    if(!idea){
+        alert("Введите идею")
+        return
+    }
+
+    await fetch(API + "/add_idea",{
+        method:"POST",
+        headers:{
+            "Content-Type":"application/json"
+        },
+        body:JSON.stringify({idea:idea})
+    })
+
+    input.value=""
+    loadIdeas()
+}
+
+
+async function deleteIdea(idea){
+
+    await fetch(API + "/delete_idea?description=" + encodeURIComponent(idea),{
+        method:"DELETE"
+    })
+
+    loadIdeas()
+}
+
+
+async function deleteAllIdeas(){
+
+    await fetch(API + "/delete_ideas",{
+        method:"DELETE"
+    })
+
+    loadIdeas()
+}
+
+
+/* ВАЖНО: загрузка идей при открытии страницы */
+
+window.onload = function(){
+    loadIdeas()
+}
+
+</script>
+
+</body>
+</html>
