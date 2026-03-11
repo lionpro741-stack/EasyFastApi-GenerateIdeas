@@ -6,7 +6,7 @@ from typing import Optional, List
 import random
 
 
-app = FastAPI(title="Contacts App")
+app = FastAPI()
 
 
 # CORS
